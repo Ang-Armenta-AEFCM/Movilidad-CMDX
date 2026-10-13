@@ -1,4 +1,4 @@
-const PATHS={master:'data/base_maestra_cct_inmuebles.json',sii:'data/estudiantes_siieweb.json',mov:'data/movilidad.json',imv:'data/indice_marginalidad_violencia.geojson',alcaldias:'data/alcaldias.json',context:'data/contexto_cct.json'};
+const PATHS={master:'data/base_maestra_cct_inmuebles.json',sii:'data/estudiantes_siieweb.json',mov:'data/movilidad.json',imv:'data/indice_marginalidad_violencia.geojson',alcaldias:'data/alcaldias.json',context:'data/contexto_cct.json',profile:'data/perfil_movilidad.json'};
 const IMV_LABEL={1:'Muy baja',2:'Baja',3:'Media',4:'Alta',5:'Muy alta'};
 const IMV_COLOR={'Muy baja':'#2f855a','Baja':'#7bbf72','Media':'#e7c95e','Alta':'#e68a4f','Muy alta':'#c94a4a'};
 const THEMES={
@@ -18,18 +18,19 @@ const THEMES={
  ]
 };
 let state={theme:'nacional',indicator:'curp_estado',metric:'count',selected:null,selectedCct:null,selectedTurn:null};
-let MASTER,MOV,SII,CTX,ALC,IMVGEO,imvLayer,alcaldiaLayer,markers=L.layerGroup();
-let cctMap=new Map(),inmuebles=[],siiExact=new Map(),siiCct=new Map(),mobIndex={},mobCctIndex={};
+let MASTER,MOV,SII,CTX,ALC,IMVGEO,PERF,imvLayer,alcaldiaLayer,markers=L.layerGroup();
+let cctMap=new Map(),inmuebles=[],siiExact=new Map(),siiCct=new Map(),mobIndex={},mobCctIndex={},originAlcNorm=new Map();
 const map=L.map('map',{zoomControl:false,preferCanvas:true}).setView([19.36,-99.13],10.4);L.control.zoom({position:'topleft'}).addTo(map);
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'}).addTo(map);markers.addTo(map);
 const q=id=>document.getElementById(id);const fmt=n=>Number(n||0).toLocaleString('es-MX');
 const clean=s=>String(s??'').trim();const norm=s=>clean(s).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 function currentDef(){return THEMES[state.theme].find(x=>x.id===state.indicator)||THEMES[state.theme][0]}
-async function init(){bind();try{const [master,sii,mov,ctx,alc,imv]=await Promise.all(Object.values(PATHS).map(p=>fetch(p,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(p);return r.json()})));MASTER=master;SII=sii;MOV=mov;CTX=ctx;ALC=alc;IMVGEO=imv;prepare();drawAlcaldias();populate();render();q('status').textContent='';}catch(e){console.error(e);q('status').textContent='No fue posible cargar el visor. Ábrelo desde GitHub Pages o un servidor web.'}}
+async function init(){bind();try{const [master,sii,mov,imv,alc,ctx,profile]=await Promise.all(Object.values(PATHS).map(p=>fetch(p,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(p);return r.json()})));MASTER=master;SII=sii;MOV=mov;CTX=ctx;ALC=alc;IMVGEO=imv;PERF=profile;prepare();drawAlcaldias();populate();render();q('status').textContent='';}catch(e){console.error(e);q('status').textContent='No fue posible cargar el visor. Ábrelo desde GitHub Pages o un servidor web.'}}
 function prepare(){
  Object.values(MASTER.cct).forEach(r=>cctMap.set(r.cct,r));inmuebles=Object.values(MASTER.inmuebles);
  for(const item of SII.registros||[])for(const r of item.ccts||[]){const k=`${r.cct}|${norm(r.turno)}`;siiExact.set(k,(siiExact.get(k)||0)+(r.estudiantes||0));siiCct.set(r.cct,(siiCct.get(r.cct)||0)+(r.estudiantes||0));}
  for(const [ds,rows] of Object.entries(MOV.registros||{})){const m=new Map(),byCct=new Map();for(const r of rows){const k=`${r.CCT}|${norm(r.TURNO)}`;m.set(k,r);if(!byCct.has(r.CCT))byCct.set(r.CCT,[]);byCct.get(r.CCT).push(r);}mobIndex[ds]=m;mobCctIndex[ds]=byCct;}
+ for(const [a,v] of Object.entries(PERF?.origen_alcaldia||{}))originAlcNorm.set(norm(a),v);
 }
 function bind(){
  q('themeTabs').addEventListener('click',e=>{const b=e.target.closest('button[data-theme]');if(!b)return;state.theme=b.dataset.theme;state.indicator=THEMES[state.theme][0].id;document.querySelectorAll('#themeTabs button').forEach(x=>x.classList.toggle('active',x===b));populateIndicators();render();});
@@ -37,7 +38,6 @@ function bind(){
  ['levelFilter','alcaldiaFilter','supportFilter'].forEach(id=>q(id).addEventListener('change',render));q('searchBox').addEventListener('input',render);
  q('clearFilters').onclick=()=>{['levelFilter','alcaldiaFilter','supportFilter'].forEach(id=>q(id).value='');q('searchBox').value='';render();};
  q('toggleImv').onchange=syncImv;q('toggleAlcaldias').onchange=()=>q('toggleAlcaldias').checked?alcaldiaLayer.addTo(map):map.removeLayer(alcaldiaLayer);
- q('methodBtn').onclick=()=>q('methodModal').classList.remove('hidden');q('closeMethod').onclick=()=>q('methodModal').classList.add('hidden');q('methodModal').onclick=e=>{if(e.target===q('methodModal'))q('methodModal').classList.add('hidden')};
  q('closeDetail').onclick=()=>q('detail').classList.add('hidden');q('sidebarToggle').onclick=()=>q('sidebar').classList.toggle('closed');
 }
 function populate(){populateIndicators();const levels=new Set(),alcs=new Set(),sups=new Set();for(const r of cctMap.values()){if(r.nivel)levels.add(r.nivel);if(r.alcaldia)alcs.add(r.alcaldia);if(r.sostenimiento)sups.add(r.sostenimiento)}fillSelect('levelFilter',levels,'Todos');fillSelect('alcaldiaFilter',alcs,'Todas');fillSelect('supportFilter',sups,'Todos');}
@@ -66,10 +66,66 @@ function renderDetail(){const inm=state.selected;if(!inm)return;const cct=state.
  html+=`<div class="info-grid"><div class="info"><b>${sii==null?'Sin registro':fmt(sii)}</b><span>Estudiantes SIIEWEB${state.selectedTurn?' · '+esc(state.selectedTurn):''}</span></div><div class="info"><b>${formatMetric(exact,def)}</b><span>${esc(def.label)}</span></div></div>`;
  if(!def.categorical&&def.id!=='imv')html+=`<div class="metric-row"><span>% respecto a SIIEWEB</span><b>${pct==null?'Sin registro':pct.toFixed(1)+'%'}</b></div>`;
  html+=`<div class="metric-row"><span>Nivel educativo</span><b>${esc(rec.nivel||'Sin registro')}</b></div><div class="metric-row"><span>Sostenimiento</span><b>${esc(rec.sostenimiento||'Sin registro')}</b></div><div class="metric-row"><span>Alcaldía</span><b>${esc(rec.alcaldia||inm.alcaldia||'Sin registro')}</b></div>`;
- html+=sourceCards(cct,state.selectedTurn);q('detailBody').innerHTML=html;q('detailBody').querySelectorAll('[data-cct]').forEach(b=>b.onclick=()=>{state.selectedCct=b.dataset.cct;state.selectedTurn=null;renderDetail()});q('detailBody').querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{state.selectedTurn=b.dataset.turn;renderDetail()});}
-function allTurnsForCct(cct){const s=new Set();for(const k of siiExact.keys())if(k.startsWith(cct+'|'))s.add(k.split('|')[1]);for(const m of Object.values(mobIndex))for(const k of m.keys())if(k.startsWith(cct+'|'))s.add(k.split('|')[1]);return [...s]}
+ html+=profileSections(cct,state.selectedTurn,rec.alcaldia||inm.alcaldia);html+=sourceCards(cct,state.selectedTurn);q('detailBody').innerHTML=html;q('detailBody').querySelectorAll('[data-cct]').forEach(b=>b.onclick=()=>{state.selectedCct=b.dataset.cct;state.selectedTurn=null;renderDetail()});q('detailBody').querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>{state.selectedTurn=b.dataset.turn;renderDetail()});}
+function allTurnsForCct(cct){const s=new Set();for(const k of siiExact.keys())if(k.startsWith(cct+'|'))s.add(k.split('|')[1]);for(const m of Object.values(mobIndex))for(const k of m.keys())if(k.startsWith(cct+'|'))s.add(k.split('|')[1]);for(const k of Object.keys(PERF?.perfil_cct_turno||{}))if(k.startsWith(cct+'|'))s.add(k.split('|')[1]);return [...s]}
 function detailMetric(cct,turn,def){if(def.id==='imv')return{value:CTX[cct]?.imv_nivel??null,cat:imvCategory(CTX[cct]?.imv_nivel)};const m=mobIndex[def.dataset]||new Map();if(turn){const r=m.get(`${cct}|${norm(turn)}`);if(!r)return{value:null,cat:null};return def.categorical?{value:null,cat:r[def.field]||null}:{value:Number(r[def.field])||0,cat:null}}return indicatorForCct(cct,def)}
 function sourceCards(cct,turn){const defs=[...THEMES.nacional,...THEMES.internacional];let html='<div class="source-card"><h3>Lectura comparada</h3>';for(const d of defs){const x=detailMetric(cct,turn,d);html+=`<div class="metric-row"><span>${esc(d.label)}</span><b>${x.value==null?'Sin registro':fmt(x.value)}</b></div>`}const imv=detailMetric(cct,turn,THEMES.contexto[0]);html+=`<div class="metric-row"><span>IMV</span><b>${imv.cat||'Sin registro'}</b></div></div>`;return html}
+
+function profileFor(cct,turn){
+ const all=PERF?.perfil_cct_turno||{};
+ if(turn&&all[`${cct}|${norm(turn)}`])return all[`${cct}|${norm(turn)}`];
+ const pref=Object.keys(all).find(k=>k.startsWith(cct+'|'));
+ return pref?all[pref]:null;
+}
+function valNum(v){const n=Number(v);return Number.isFinite(n)?n:null}
+function statBox(label,value,total){
+ const n=valNum(value);if(n==null)return'';const pct=total&&Number.isFinite(total)?` · ${(100*n/total).toFixed(1)}%`:'';
+ return `<div class="info compact"><b>${fmt(n)}</b><span>${esc(label)}${pct}</span></div>`;
+}
+function nzRow(label,value){const n=valNum(value);if(n==null||n<=0)return'';return `<div class="metric-row"><span>${esc(label)}</span><b>${fmt(n)}</b></div>`}
+function profileSections(cct,turn,alcaldia){
+ const r=profileFor(cct,turn);let html='';
+ if(r){
+  const total=valNum(r['ESTUDIANTES'])||0;
+  html+=`<div class="source-card profile-card"><h3>Perfil de estudiantes</h3><div class="info-grid profile-grid">`;
+  html+=statBox('Hombres',r['HOMBRES'],total)+statBox('Mujeres',r['MUJERES'],total);
+  html+=`</div>`;
+  const extras=[['Lengua indígena',r['LENGUA INDÍGENA']],['Grupo étnico',r['GRUPO ÉTNICO']],['Condición o discapacidad',r['CONDICIÓN O DISCAPACIDAD']],['Estudiantes irregulares',r['ESTUDIANTES IRREGULARES']],['CURP con incidencia',r['CURP CON INCIDENCIA']]];
+  const extraHtml=extras.map(x=>nzRow(x[0],x[1])).join('');if(extraHtml)html+=`<div class="mini-block"><h4>Características registradas</h4>${extraHtml}</div>`;
+  let origin='';
+  origin+=nzRow('Nacimiento CURP · CDMX',r['NACIMIENTO CURP CDMX']);
+  origin+=nzRow('Nacimiento CURP · otro estado',r['NACIMIENTO CURP OTRO ESTADO']);
+  origin+=nzRow('Nacimiento CURP · extranjero',r['NACIMIENTO CURP EXTRANJERO']);
+  origin+=nzRow('Nacimiento CURP · no determinado',r['NACIMIENTO CURP NO DETERMINADO']);
+  origin+=nzRow('Entidad registrada · CDMX',r['ENTIDAD CDMX']);
+  origin+=nzRow('Entidad registrada · otra',r['ENTIDAD OTRA']);
+  origin+=nzRow('País registrado · México',r['PAÍS MÉXICO']);
+  origin+=nzRow('País registrado · otro',r['PAÍS OTRO']);
+  origin+=nzRow('Condición migrante',r['MIGRANTE']);
+  origin+=nzRow('Migrante · otra entidad',r['ENTIDAD MIGRANTE OTRA']);
+  origin+=nzRow('Migrante · otro país',r['PAÍS MIGRANTE OTRO']);
+  if(origin)html+=`<div class="mini-block"><h4>Origen y movilidad · CCT/turno</h4>${origin}</div>`;
+  const avg=valNum(r['PROMEDIO PROMEDIO GRADO']),evaln=valNum(r['EVALUADOS PROMEDIO GRADO']);
+  if(avg!=null&&avg>0)html+=`<div class="mini-block"><h4>Información académica disponible</h4><div class="metric-row"><span>Promedio de grado</span><b>${avg.toFixed(2)}</b></div>${evaln>0?`<div class="metric-row"><span>Estudiantes evaluados</span><b>${fmt(evaln)}</b></div>`:''}</div>`;
+  html+='</div>';
+ }
+ html+=originAlcaldiaSection(alcaldia);
+ return html;
+}
+function originAlcaldiaSection(alcaldia){
+ const d=originAlcNorm.get(norm(alcaldia));if(!d)return'';
+ const groups=[
+  ['Estados de nacimiento por CURP',d.nacimiento_otro_estado],
+  ['Entidades registradas distintas de CDMX',d.entidad_otra],
+  ['Entidades de condición migrante',d.entidad_migrante],
+  ['Países registrados distintos de México',d.pais_otro],
+  ['Países de condición migrante',d.pais_migrante]
+ ];
+ let body='';
+ for(const [title,arr] of groups){if(!arr?.length)continue;const items=arr.filter(x=>Number(x.estudiantes)>0);if(!items.length)continue;body+=`<div class="origin-group"><h4>${esc(title)}</h4><div class="origin-list">${items.map(x=>`<span class="origin-pill"><b>${fmt(x.estudiantes)}</b> ${esc(x.nombre)}</span>`).join('')}</div></div>`;}
+ return body?`<div class="source-card territory-origin"><h3>Orígenes observados en ${esc(alcaldia||'la alcaldía')}</h3><p class="micro note">Este desglose nominal está disponible por alcaldía, no por CCT. Solo se muestran orígenes con estudiantes registrados.</p>${body}</div>`:'';
+}
+
 function formatMetric(x,def){if(def.categorical||def.id==='imv')return esc(x.cat||'Sin registro');return x.value==null?'Sin registro':fmt(x.value)}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 init();

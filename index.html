@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Visor analítico de movilidad y migración escolar en la Ciudad de México.">
+<title>Visor de movilidad escolar · CDMX</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <span class="eyebrow">Sistema de información geográfica</span>
+    <h1>Movilidad y migración escolar</h1>
+    <p>Análisis territorial de origen, condición migrante y contexto socioespacial de estudiantes en planteles de la Ciudad de México.</p>
+  </div>
+  <button id="methodBtn" class="ghost">Metodología</button>
+</header>
+<main class="app">
+<aside class="sidebar" id="sidebar">
+  <section class="panel hero-panel">
+    <span class="kicker">Lectura principal</span>
+    <div class="segmented" id="themeTabs">
+      <button data-theme="nacional" class="active">Movilidad nacional</button>
+      <button data-theme="internacional">Movilidad internacional</button>
+      <button data-theme="contexto">Contexto</button>
+    </div>
+    <label for="indicator">Indicador</label>
+    <select id="indicator"></select>
+    <label for="metric">Representación</label>
+    <select id="metric">
+      <option value="count">Cantidad de estudiantes</option>
+      <option value="percent">% respecto a matrícula SIIEWEB</option>
+    </select>
+    <div id="indicatorHelp" class="help"></div>
+  </section>
+
+  <section class="panel">
+    <div class="section-title"><h2>Filtros</h2><button id="clearFilters" class="linkbtn">Limpiar</button></div>
+    <label for="levelFilter">Nivel educativo</label><select id="levelFilter"><option value="">Todos</option></select>
+    <label for="alcaldiaFilter">Alcaldía</label><select id="alcaldiaFilter"><option value="">Todas</option></select>
+    <label for="supportFilter">Sostenimiento</label><select id="supportFilter"><option value="">Todos</option></select>
+    <label for="searchBox">Buscar plantel o CCT</label><input id="searchBox" type="search" placeholder="Ej. 09DPR… o nombre">
+  </section>
+
+  <section class="panel kpi-panel">
+    <span class="kicker">Resumen visible</span>
+    <div class="kpis">
+      <div><strong id="kpiCct">0</strong><span>CCT</span></div>
+      <div><strong id="kpiInm">0</strong><span>Inmuebles</span></div>
+      <div><strong id="kpiSii">0</strong><span>Estudiantes SIIEWEB</span></div>
+      <div><strong id="kpiInd">—</strong><span id="kpiIndLabel">Indicador</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Capas</h2>
+    <label class="check"><input type="checkbox" id="toggleImv"><span>Índice de marginalidad y violencia</span></label>
+    <label class="check"><input type="checkbox" id="toggleAlcaldias" checked><span>Límites de alcaldías</span></label>
+    <p class="micro">La capa IMV es contexto territorial; no se interpreta como atributo individual de cada estudiante.</p>
+  </section>
+</aside>
+
+<section class="map-wrap">
+  <div id="map"></div>
+  <button id="sidebarToggle" class="floating menu">☰</button>
+  <div id="legend" class="legend"></div>
+  <div id="status" class="status">Cargando información…</div>
+  <aside id="detail" class="detail hidden">
+    <button id="closeDetail" class="close">×</button>
+    <div id="detailBody"></div>
+  </aside>
+</section>
+</main>
+
+<div id="methodModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <button id="closeMethod" class="close">×</button>
+    <span class="kicker">Cómo leer este visor</span>
+    <h2>Las fuentes no se mezclan como si fueran la misma variable</h2>
+    <p><strong>Nacimiento por CURP</strong> identifica lugar de nacimiento inferido por CURP. <strong>Entidad/país registrado</strong> corresponde a los campos de entidad o país de las bases disponibles. <strong>Condición migrante</strong> usa exclusivamente los registros marcados como migrantes.</p>
+    <p>Por eso una persona nacida fuera de la Ciudad de México no se considera automáticamente “migrante” en este visor. Las dimensiones se muestran por separado para permitir comparación analítica.</p>
+    <p><strong>0</strong> significa cero reportado. <strong>Sin registro</strong> significa que la fuente correspondiente no contiene un registro utilizable para ese CCT/turno.</p>
+    <p>Los porcentajes usan como denominador la matrícula SIIEWEB cuando existe una coincidencia compatible CCT-turno. Debido a que las fuentes pueden tener cortes distintos, se muestran como referencia analítica y no como una tasa oficial homologada.</p>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

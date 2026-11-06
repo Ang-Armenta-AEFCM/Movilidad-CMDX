@@ -1,0 +1,137 @@
+{
+  "nota": "Solo para este visor; las ubicaciones se aportaron el 6 de noviembre de 2026. No modifica la base maestra.",
+  "registros": [
+    {
+      "cct": {
+        "cct": "09AEP0004J",
+        "fuente_inclusion": "Complemento exclusivo de visor de movilidad",
+        "tipo_cct": "AEP",
+        "nombre": "Plantel 09AEP0004J (nombre no disponible)",
+        "nivel": "Preescolar - Comunitario",
+        "turno_principal": "TIEMPO COMPLETO",
+        "turnos": "TIEMPO COMPLETO",
+        "sostenimiento": "Público",
+        "domicilio": "",
+        "localidad": "",
+        "alcaldia": "LA MAGDALENA CONTRERAS",
+        "colonia": "",
+        "cve_col": "",
+        "lat": 19.316843828057173,
+        "lon": -99.25590496116502,
+        "inmueble_origen": "",
+        "inmueble_master": "SUP-MOV-09AEP0004J",
+        "estatus_inmueble": "Georreferenciado con coordenada proporcionada",
+        "fuentes_disponibles": "Visor movilidad | Estudiantesmovilidad.xlsx",
+        "origen_registro": "Complemento de movilidad (no modifica la base maestra)",
+        "alcaldia_en_base_movilidad": "Cuauhtémoc"
+      },
+      "inmueble": {
+        "inmueble_master": "SUP-MOV-09AEP0004J",
+        "fuente_inmueble": "Ubicación facilitada por usuario",
+        "aliases_previos": "",
+        "nombre": "Plantel 09AEP0004J (nombre no disponible)",
+        "domicilio": "",
+        "alcaldia": "LA MAGDALENA CONTRERAS",
+        "cp": "",
+        "colonia_asentamiento": "",
+        "tipo_asentamiento": "Registro complementario",
+        "lat": 19.316843828057173,
+        "lon": -99.25590496116502,
+        "ccts": [
+          "09AEP0004J"
+        ],
+        "niveles": [
+          "Preescolar - Comunitario"
+        ]
+      }
+    },
+    {
+      "cct": {
+        "cct": "09NDI0040J",
+        "fuente_inclusion": "Complemento exclusivo de visor de movilidad",
+        "tipo_cct": "NDI",
+        "nombre": "Plantel 09NDI0040J (nombre no disponible)",
+        "nivel": "Educación Inicial",
+        "turno_principal": "VESPERTINO",
+        "turnos": "VESPERTINO",
+        "sostenimiento": "Otros organismos",
+        "domicilio": "",
+        "localidad": "",
+        "alcaldia": "AZCAPOTZALCO",
+        "colonia": "",
+        "cve_col": "",
+        "lat": 19.486772610236176,
+        "lon": -99.17985758999697,
+        "inmueble_origen": "",
+        "inmueble_master": "SUP-MOV-09NDI0040J",
+        "estatus_inmueble": "Georreferenciado con coordenada proporcionada",
+        "fuentes_disponibles": "Visor movilidad | Estudiantesmovilidad.xlsx",
+        "origen_registro": "Complemento de movilidad (no modifica la base maestra)",
+        "alcaldia_en_base_movilidad": "Azcapotzalco"
+      },
+      "inmueble": {
+        "inmueble_master": "SUP-MOV-09NDI0040J",
+        "fuente_inmueble": "Ubicación facilitada por usuario",
+        "aliases_previos": "",
+        "nombre": "Plantel 09NDI0040J (nombre no disponible)",
+        "domicilio": "",
+        "alcaldia": "AZCAPOTZALCO",
+        "cp": "",
+        "colonia_asentamiento": "",
+        "tipo_asentamiento": "Registro complementario",
+        "lat": 19.486772610236176,
+        "lon": -99.17985758999697,
+        "ccts": [
+          "09NDI0040J"
+        ],
+        "niveles": [
+          "Educación Inicial"
+        ]
+      }
+    },
+    {
+      "cct": {
+        "cct": "09FZQ0001T",
+        "fuente_inclusion": "Complemento exclusivo de visor de movilidad",
+        "tipo_cct": "FZQ",
+        "nombre": "Plantel 09FZQ0001T (nombre no disponible)",
+        "nivel": "Preescolar - Comunitario",
+        "turno_principal": "TIEMPO COMPLETO",
+        "turnos": "TIEMPO COMPLETO",
+        "sostenimiento": "Público",
+        "domicilio": "",
+        "localidad": "",
+        "alcaldia": "IZTAPALAPA",
+        "colonia": "",
+        "cve_col": "",
+        "lat": 19.369634829228573,
+        "lon": -99.08191081698736,
+        "inmueble_origen": "",
+        "inmueble_master": "SUP-MOV-09FZQ0001T",
+        "estatus_inmueble": "Georreferenciado con coordenada proporcionada",
+        "fuentes_disponibles": "Visor movilidad | Estudiantesmovilidad.xlsx",
+        "origen_registro": "Complemento de movilidad (no modifica la base maestra)",
+        "alcaldia_en_base_movilidad": "Iztapalapa"
+      },
+      "inmueble": {
+        "inmueble_master": "SUP-MOV-09FZQ0001T",
+        "fuente_inmueble": "Ubicación facilitada por usuario",
+        "aliases_previos": "",
+        "nombre": "Plantel 09FZQ0001T (nombre no disponible)",
+        "domicilio": "",
+        "alcaldia": "IZTAPALAPA",
+        "cp": "",
+        "colonia_asentamiento": "",
+        "tipo_asentamiento": "Registro complementario",
+        "lat": 19.369634829228573,
+        "lon": -99.08191081698736,
+        "ccts": [
+          "09FZQ0001T"
+        ],
+        "niveles": [
+          "Preescolar - Comunitario"
+        ]
+      }
+    }
+  ]
+}
